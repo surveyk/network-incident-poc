@@ -1,0 +1,68 @@
+
+{
+  "criticality_levels": {
+    "VERY_HIGH": {
+      "display_name": "매우 높음",
+      "recovery_priority": "P1",
+      "recovery_priority_display": "최우선"
+    },
+    "HIGH": {
+      "display_name": "높음",
+      "recovery_priority": "P2",
+      "recovery_priority_display": "신속 복구"
+    },
+    "NORMAL": {
+      "display_name": "보통",
+      "recovery_priority": "P3",
+      "recovery_priority_display": "일반 복구"
+    }
+  },
+
+  "services": [
+    {
+      "service_id": "ONNARA",
+      "category": "행정",
+      "display_name": "온나라",
+      "scope": "COMMON",
+      "floors": [1,2,3,4,5,6,7,8,9,10],
+      "criticality": "NORMAL",
+      "enabled": true
+    },
+    {
+      "service_id": "POLNET",
+      "category": "행정",
+      "display_name": "폴넷",
+      "scope": "COMMON",
+      "floors": [1,2,3,4,5,6,7,8,9,10],
+      "criticality": "NORMAL",
+      "enabled": true
+    },
+    {
+      "service_id": "KICS",
+      "category": "수사",
+      "display_name": "KICS(킥스)",
+      "scope": "FLOOR",
+      "floors": [1],
+      "criticality": "HIGH",
+      "enabled": true
+    },
+    {
+      "service_id": "112SYSTEM",
+      "category": "112",
+      "display_name": "112시스템",
+      "scope": "FLOOR",
+      "floors": [2],
+      "criticality": "VERY_HIGH",
+      "enabled": true
+    },
+    {
+      "service_id": "TCS",
+      "category": "교통",
+      "display_name": "TCS",
+      "scope": "FLOOR",
+      "floors": [3],
+      "criticality": "HIGH",
+      "enabled": true
+    }
+  ]
+}

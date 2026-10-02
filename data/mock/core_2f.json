@@ -1,0 +1,143 @@
+{
+  "incident": {
+    "incident_id": "INC-20260930-001",
+    "location": "2층 네트워크",
+    "primary_device": "2층 층간스위치",
+    "related_devices": [
+      "백본스위치"
+    ],
+    "detected_time": "2026-09-30T10:21:02",
+    "start_time": "2026-09-30T10:21:24",
+    "recovery_time": "2026-09-30T10:22:13",
+    "end_time": "2026-09-30T10:22:19",
+    "status": "RECOVERED"
+  },
+
+  "impact": {
+    "affected_services": [
+      {
+        "category": "112",
+        "name": "112시스템",
+        "criticality": "VERY_HIGH"
+      },
+      {
+        "category": "행정",
+        "name": "온나라",
+        "criticality": "NORMAL"
+      },
+      {
+        "category": "행정",
+        "name": "폴넷",
+        "criticality": "NORMAL"
+      }
+    ],
+    "impact_basis": "LOCATION_MAPPING",
+    "verification_status": "UNVERIFIED",
+    "overall_criticality": "VERY_HIGH",
+    "recovery_priority": "P1"
+  },
+
+  "timeline": [
+    {
+      "timestamp": "2026-09-30T10:21:02",
+      "stage": "PRECURSOR",
+      "device": "2층 층간스위치",
+      "event_type": "MAC_FLAPPING",
+      "summary": "MAC 주소 반복 이동 감지"
+    },
+    {
+      "timestamp": "2026-09-30T10:21:22",
+      "stage": "PRECURSOR",
+      "device": "백본스위치",
+      "event_type": "BROADCAST_HIGH",
+      "summary": "2층 방향 Broadcast 트래픽 증가"
+    },
+    {
+      "timestamp": "2026-09-30T10:21:24",
+      "stage": "INCIDENT",
+      "device": "백본스위치",
+      "event_type": "LINK_DOWN",
+      "summary": "2층 네트워크 연결 중단"
+    },
+    {
+      "timestamp": "2026-09-30T10:22:05",
+      "stage": "ACTION",
+      "device": "2층 층간스위치",
+      "event_type": "PORT_DISABLED",
+      "summary": "장애 의심 포트 차단"
+    },
+    {
+      "timestamp": "2026-09-30T10:22:13",
+      "stage": "RECOVERY",
+      "device": "백본스위치",
+      "event_type": "LINK_UP",
+      "summary": "2층 네트워크 연결 복구"
+    }
+  ],
+
+  "facts": [
+    {
+      "type": "MAC_FLAPPING",
+      "timestamp": "2026-09-30T10:21:02",
+      "device": "2층 층간스위치",
+      "source_line": 4,
+      "text": "MAC 주소 반복 이동이 확인됨"
+    },
+    {
+      "type": "LOOP_DETECTED",
+      "timestamp": "2026-09-30T10:21:06",
+      "device": "2층 층간스위치",
+      "source_line": 6,
+      "text": "Loop Guard 관련 이벤트가 확인됨"
+    },
+    {
+      "type": "CPU_HIGH",
+      "timestamp": "2026-09-30T10:21:11",
+      "device": "2층 층간스위치",
+      "source_line": 8,
+      "text": "CPU 사용률 상승이 확인됨"
+    },
+    {
+      "type": "BROADCAST_HIGH",
+      "timestamp": "2026-09-30T10:21:22",
+      "device": "백본스위치",
+      "source_line": 11,
+      "text": "2층 방향 Broadcast 증가가 확인됨"
+    },
+    {
+      "type": "LINK_DOWN",
+      "timestamp": "2026-09-30T10:21:24",
+      "device": "백본스위치",
+      "source_line": 12,
+      "text": "2층 네트워크 연결 중단이 확인됨"
+    },
+    {
+      "type": "PORT_DISABLED",
+      "timestamp": "2026-09-30T10:22:05",
+      "device": "2층 층간스위치",
+      "source_line": 17,
+      "text": "장애 의심 포트가 차단됨"
+    },
+    {
+      "type": "LINK_UP",
+      "timestamp": "2026-09-30T10:22:13",
+      "device": "백본스위치",
+      "source_line": 20,
+      "text": "2층 네트워크 연결 복구가 확인됨"
+    }
+  ],
+
+  "recurrence": {
+    "status": "UNKNOWN",
+    "similar_incident_count": null
+  },
+
+  "analysis_context": {
+    "log_source_count": 2,
+    "devices_analyzed": [
+      "2층 층간스위치",
+      "백본스위치"
+    ],
+    "related_event_count": 17
+  }
+}

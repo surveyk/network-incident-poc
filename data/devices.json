@@ -1,0 +1,92 @@
+{
+  "devices": [
+    {
+      "device_id": "BACKBONE-SW",
+      "display_name": "백본스위치",
+      "location": "중앙",
+      "floor": null,
+      "device_role": "BACKBONE_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-01",
+      "display_name": "1층 층간스위치",
+      "location": "1층",
+      "floor": 1,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-02",
+      "display_name": "2층 층간스위치",
+      "location": "2층",
+      "floor": 2,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-03",
+      "display_name": "3층 층간스위치",
+      "location": "3층",
+      "floor": 3,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-04",
+      "display_name": "4층 층간스위치",
+      "location": "4층",
+      "floor": 4,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-05",
+      "display_name": "5층 층간스위치",
+      "location": "5층",
+      "floor": 5,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-06",
+      "display_name": "6층 층간스위치",
+      "location": "6층",
+      "floor": 6,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-07",
+      "display_name": "7층 층간스위치",
+      "location": "7층",
+      "floor": 7,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-08",
+      "display_name": "8층 층간스위치",
+      "location": "8층",
+      "floor": 8,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-09",
+      "display_name": "9층 층간스위치",
+      "location": "9층",
+      "floor": 9,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    },
+    {
+      "device_id": "SW-ACCESS-10",
+      "display_name": "10층 층간스위치",
+      "location": "10층",
+      "floor": 10,
+      "device_role": "ACCESS_SWITCH",
+      "enabled": true
+    }
+  ]
+}

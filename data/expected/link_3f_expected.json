@@ -1,0 +1,115 @@
+{
+  "incident": {
+    "incident_id": "INC-20260930-003",
+    "location": "3층 네트워크",
+    "primary_device": "3층 층간스위치",
+    "related_devices": [
+      "백본스위치"
+    ],
+    "detected_time": "2026-09-30T13:40:11",
+    "start_time": "2026-09-30T13:40:11",
+    "recovery_time": "2026-09-30T13:41:04",
+    "end_time": "2026-09-30T13:41:04",
+    "status": "RECOVERED"
+  },
+
+  "impact": {
+    "affected_services": [
+      {
+        "category": "교통",
+        "name": "TCS",
+        "criticality": "HIGH"
+      },
+      {
+        "category": "행정",
+        "name": "온나라",
+        "criticality": "NORMAL"
+      },
+      {
+        "category": "행정",
+        "name": "폴넷",
+        "criticality": "NORMAL"
+      }
+    ],
+    "impact_basis": "LOCATION_MAPPING",
+    "verification_status": "UNVERIFIED",
+    "overall_criticality": "HIGH",
+    "recovery_priority": "P2"
+  },
+
+  "timeline": [
+    {
+      "timestamp": "2026-09-30T13:40:11",
+      "stage": "INCIDENT",
+      "device": "백본스위치",
+      "event_type": "LINK_DOWN",
+      "summary": "백본에서 3층 연결 단절 감지"
+    },
+    {
+      "timestamp": "2026-09-30T13:40:12",
+      "stage": "INCIDENT",
+      "device": "3층 층간스위치",
+      "event_type": "LINK_DOWN",
+      "summary": "3층 층간스위치에서도 연결 단절 확인"
+    },
+    {
+      "timestamp": "2026-09-30T13:41:03",
+      "stage": "RECOVERY",
+      "device": "백본스위치",
+      "event_type": "LINK_UP",
+      "summary": "백본의 3층 연결 복구"
+    },
+    {
+      "timestamp": "2026-09-30T13:41:04",
+      "stage": "RECOVERY",
+      "device": "3층 층간스위치",
+      "event_type": "LINK_UP",
+      "summary": "3층 층간스위치 연결 복구 확인"
+    }
+  ],
+
+  "facts": [
+    {
+      "type": "LINK_DOWN",
+      "timestamp": "2026-09-30T13:40:11",
+      "device": "백본스위치",
+      "source_line": 3,
+      "text": "백본스위치에서 3층 연결 단절이 확인됨"
+    },
+    {
+      "type": "LINK_DOWN",
+      "timestamp": "2026-09-30T13:40:12",
+      "device": "3층 층간스위치",
+      "source_line": 4,
+      "text": "3층 층간스위치에서도 Uplink 단절이 확인됨"
+    },
+    {
+      "type": "LINK_UP",
+      "timestamp": "2026-09-30T13:41:03",
+      "device": "백본스위치",
+      "source_line": 7,
+      "text": "백본스위치의 3층 연결 복구가 확인됨"
+    },
+    {
+      "type": "LINK_UP",
+      "timestamp": "2026-09-30T13:41:04",
+      "device": "3층 층간스위치",
+      "source_line": 8,
+      "text": "3층 층간스위치의 Uplink 복구가 확인됨"
+    }
+  ],
+
+  "recurrence": {
+    "status": "UNKNOWN",
+    "similar_incident_count": null
+  },
+
+  "analysis_context": {
+    "log_source_count": 2,
+    "devices_analyzed": [
+      "3층 층간스위치",
+      "백본스위치"
+    ],
+    "related_event_count": 4
+  }
+}

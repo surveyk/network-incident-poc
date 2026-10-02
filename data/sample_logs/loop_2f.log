@@ -1,0 +1,24 @@
+2026-09-30 10:20:41 SW-ACCESS-01 %LINK-5-CHANGED: Interface Gi1/0/12 changed state to up
+2026-09-30 10:20:48 SW-ACCESS-03 %SYS-5-CONFIG_I: Configured from console by admin
+2026-09-30 10:20:54 BACKBONE-SW %LINEPROTO-5-UPDOWN: Line protocol on 3F uplink changed state to up
+2026-09-30 10:21:02 SW-ACCESS-02 %SW_MATM-4-MACFLAP_NOTIF: Host 00AA.BBCC.1122 in vlan 20 is flapping between port Gi1/0/18 and port Gi1/0/19
+2026-09-30 10:21:04 SW-ACCESS-02 %SW_MATM-4-MACFLAP_NOTIF: Host 00AA.BBCC.3344 in vlan 20 is flapping between port Gi1/0/18 and port Gi1/0/19
+2026-09-30 10:21:06 SW-ACCESS-02 %SPANTREE-2-LOOPGUARD_BLOCK: Loop guard detected repeated topology change on port Gi1/0/19 VLAN0020
+2026-09-30 10:21:08 SW-ACCESS-02 %SW_MATM-4-MACFLAP_NOTIF: Host 00AA.BBCC.5566 in vlan 20 is flapping between port Gi1/0/18 and port Gi1/0/19
+2026-09-30 10:21:11 SW-ACCESS-02 %SYS-4-CPUHOG: CPU utilization reached 92 percent
+2026-09-30 10:21:15 SW-ACCESS-02 %ETHPORT-3-IF_ERROR_VL: Packet discard rate increased on VLAN20
+2026-09-30 10:21:18 BACKBONE-SW %SW_MATM-4-MACFLAP_NOTIF: Multiple MAC addresses in VLAN20 are changing toward 2F uplink
+2026-09-30 10:21:22 BACKBONE-SW %STORM_CONTROL-3-ALERT: Broadcast traffic threshold exceeded on 2F uplink
+2026-09-30 10:21:24 BACKBONE-SW %LINEPROTO-5-UPDOWN: Line protocol on 2F uplink changed state to down
+2026-09-30 10:21:25 SW-ACCESS-02 %LINK-3-UPDOWN: Interface Gi1/0/48 changed state to down
+2026-09-30 10:21:30 SW-ACCESS-02 %SYS-4-CPUHOG: CPU utilization reached 95 percent
+2026-09-30 10:21:36 SW-ACCESS-04 %LINK-5-CHANGED: Interface Gi1/0/7 changed state to up
+2026-09-30 10:21:44 SW-ACCESS-01 %SYS-5-CONFIG_I: Configured from console by admin
+2026-09-30 10:22:05 SW-ACCESS-02 %LINK-5-CHANGED: Interface Gi1/0/19 administratively down
+2026-09-30 10:22:08 SW-ACCESS-02 %SYS-5-CPU: CPU utilization decreased to 48 percent
+2026-09-30 10:22:11 SW-ACCESS-02 %LINK-3-UPDOWN: Interface Gi1/0/48 changed state to up
+2026-09-30 10:22:13 BACKBONE-SW %LINEPROTO-5-UPDOWN: Line protocol on 2F uplink changed state to up
+2026-09-30 10:22:16 BACKBONE-SW %STORM_CONTROL-5-CLEAR: Broadcast traffic returned to normal on 2F uplink
+2026-09-30 10:22:19 SW-ACCESS-02 %SYS-5-CPU: CPU utilization returned to normal at 31 percent
+2026-09-30 10:22:31 SW-ACCESS-03 %LINK-5-CHANGED: Interface Gi1/0/15 changed state to up
+2026-09-30 10:22:40 BACKBONE-SW %SYS-5-CONFIG_I: Configured from console by admin
