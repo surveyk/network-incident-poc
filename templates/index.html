@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>네트워크 장애 상황보고</title>
+<style>
+  body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: #222; background: #fff; margin: 0; line-height: 1.6; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 32px 24px 48px; }
+  header { border-bottom: 2px solid #222; padding-bottom: 8px; margin-bottom: 24px; }
+  header .sub { font-size: 13px; color: #555; }
+  h1 { font-size: 24px; margin: 4px 0; }
+  h2 { font-size: 17px; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #999; }
+  h3 { font-size: 14px; margin: 14px 0 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { border: 1px solid #bbb; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f3f3; width: 160px; white-space: nowrap; }
+  table.list th { width: auto; }
+  td.time { width: 90px; white-space: nowrap; }
+  td.stage { width: 80px; white-space: nowrap; }
+  ul { margin: 4px 0; padding-left: 22px; }
+  .strong { font-weight: bold; }
+  .note { font-size: 12px; color: #555; }
+  .empty { color: #666; }
+  details { margin-top: 28px; border: 1px solid #bbb; padding: 8px 12px; }
+  summary { cursor: pointer; font-weight: bold; }
+  .error { border: 1px solid #a00; color: #a00; padding: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="sub">Network Incident PoC</div>
+    <h1>네트워크 장애 상황보고</h1>
+    {% if report %}<div class="sub">{{ report.analysis.ai_status_label }}</div>{% endif %}
+  </header>
+
+{% if error %}
+  <p class="error">{{ error }}</p>
+{% else %}
+  {% set s = report.summary %}
+  {% set a = report.analysis %}
+
+  <h2>1. 장애 요약</h2>
+  <table>
+    <tr><th>발생일시</th><td>{{ s.incident_time }}</td></tr>
+    <tr><th>최초 이상징후</th><td>{{ s.detected_time }}</td></tr>
+    <tr><th>장애구간</th><td class="strong">{{ s.location }}</td></tr>
+    <tr>
+      <th>{{ s.affected_services_label }}</th>
+      <td>
+        <span class="strong">{{ s.affected_services | join(", ") }}</span>
+        {% if s.service_note %}<div class="note">{{ s.service_note }}</div>{% endif %}
+      </td>
+    </tr>
+    <tr><th>업무 중요도</th><td class="strong">{{ s.criticality }}</td></tr>
+    <tr><th>복구 우선순위</th><td class="strong">{{ s.recovery_priority }}</td></tr>
+    <tr><th>현재상태</th><td class="strong">{{ s.status }}</td></tr>
+    <tr><th>반복 장애 여부</th><td>{{ s.recurrence }}</td></tr>
+  </table>
+
+  <h2>2. 장애경과</h2>
+  <table class="list">
+    {% for e in report.timeline %}
+    <tr><td class="time">{{ e.time }}</td><td class="stage">{{ e.stage }}</td><td>{{ e.text }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>3. 조치내용</h2>
+  {% if report.actions %}
+  <ul>
+    {% for item in report.actions %}<li>{{ item }}</li>{% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">확인된 조치내용이 없습니다.</p>
+  {% endif %}
+
+  <h2>4. 추정원인 및 추가확인</h2>
+  {% if a.probable_cause %}
+    <h3>추정원인 (AI 추정)</h3>
+    <p>현재 로그 흐름에서는 <span class="strong">{{ a.probable_cause }}</span>을 우선 검토할 수 있습니다. 최종 원인은 담당자가 판단합니다.</p>
+    {% if a.ai_summary %}<p class="note">{{ a.ai_summary }}</p>{% endif %}
+    <h3>주요 근거</h3>
+    <ul>{% for item in a.evidence %}<li>{{ item }}</li>{% endfor %}</ul>
+    <h3>불확실성 / 확인 한계</h3>
+    <ul>{% for item in a.uncertainty %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% elif a.message %}
+    <p class="empty">{{ a.message }}</p>
+  {% endif %}
+  {% if a.additional_checks %}
+    <h3>추가확인</h3>
+    <ul>{% for item in a.additional_checks %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  <details>
+    <summary>5. 기술 상세정보</summary>
+
+    <h3>Fact (원본 로그 기반)</h3>
+    <table class="list">
+      <tr><th>시각</th><th>장비</th><th>유형</th><th>내용</th><th>원본 로그</th></tr>
+      {% for f in report.details.facts %}
+      <tr><td>{{ f.time }}</td><td>{{ f.device }}</td><td>{{ f.type }}</td><td>{{ f.text }}</td><td>Line {{ f.source_line }}</td></tr>
+      {% endfor %}
+    </table>
+
+    <h3>분석 범위</h3>
+    {% set c = report.details.analysis_context %}
+    <ul>
+      <li>분석 장비: {{ c.devices | join(", ") }}</li>
+      <li>분석 장비 수: {{ c.device_count }}대</li>
+      <li>관련 이벤트: {{ c.related_event_count }}건</li>
+    </ul>
+
+    <h3>AI 원인 후보 (추정, Fact 아님)</h3>
+    {% for h in report.details.hypotheses %}
+      <p class="strong">{{ h.cause }}</p>
+      <ul>
+        {% for item in h.evidence %}<li>근거: {{ item }}</li>{% endfor %}
+        {% for item in h.uncertainty %}<li>불확실성: {{ item }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">AI 원인 후보가 없습니다.</p>
+    {% endfor %}
+  </details>
+{% endif %}
+</div>
+</body>
+</html>
