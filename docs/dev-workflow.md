@@ -1,5 +1,58 @@
 # Developer A / B Collaboration Workflow
 
+> ## 운영방식 변경 안내
+>
+> 본 문서는 최초 2인 병렬개발을 기준으로 작성된 협업 절차이다.
+>
+> 현재 D-Day 개발방식은 **1인 개발**로 변경되었으며, 실제 개발 실행절차는 `JOB_261007_SOLO.md`를 기준으로 한다.
+>
+> 따라서 본 문서에 정의된 다음 절차는 D-Day 필수절차로 사용하지 않는다.
+>
+> - Developer A / Developer B 별도 Branch 운영
+> - A PR 생성 후 B Interface Review
+> - A Branch의 `main` Merge 후 B 통합
+> - A/B 간 작업 인수인계 절차
+>
+> 다만 본 문서는 기존 설계의 역할분리와 협업구조를 설명하는 참고자료로 유지한다.
+>
+> 기술적 역할 구분은 계속 유효하다.
+>
+> ```text
+> Core Analysis
+> = Fact / Rule
+>
+> AI Analysis
+> = Inference
+>
+> Report Builder
+> = Composition
+>
+> Web
+> = Presentation
+>
+> Human
+> = Final Decision
+> ```
+>
+> 1인 D-Day 개발은 다음 우선순위를 따른다.
+>
+> ```text
+> Core Analysis
+> ↓
+> Golden / Validation Sample 검증
+> ↓
+> Report / Web
+> ↓
+> Mock AI
+> ↓
+> Azure OpenAI
+> ↓
+> 전체 Test / Demo
+> ```
+>
+> 실제 Git 작업은 `feature/solo-poc` Branch를 사용하며, 상세 순서와 시간별 중단 기준은 `JOB_261007_SOLO.md`를 따른다.
+>
+> ---
 ## 1. 기본 원칙
 
 Developer A와 Developer B는 동일 Repository에서 서로 다른 Branch를 사용하여 병렬 개발한다.

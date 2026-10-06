@@ -17,6 +17,14 @@
 
 최종 목적은 장애원인을 자동 확정하는 것이 아니라 담당자의 장애 판단과 보고를 지원하는 것이다.
 
+현재 D-Day 개발은 기존 2인 병렬개발 계획에서 **1인 개발 방식**으로 변경되었다.
+
+기존 `JOB_261007_A.md`, `JOB_261007_B.md`는 상세 설계 참고자료로 유지하며, 실제 D-Day 실행순서와 우선순위는 다음 문서를 따른다.
+
+```text
+JOB_261007_SOLO.md
+```
+
 ---
 
 # 2. Mandatory Specifications
@@ -27,6 +35,9 @@
 2. `docs/interface-spec.md`
 3. `docs/flowchart.md`
 4. `docs/report-spec.md`
+5. `docs/ai-spec.md`
+6. `docs/report-builder-spec.md`
+7. `docs/web-spec.md`
 
 각 문서의 역할:
 
@@ -38,13 +49,22 @@
   - 이벤트 판단기준
 
 - `interface-spec.md`
-  - A/B JSON 계약
+  - Core Result 데이터 계약
 
 - `flowchart.md`
-  - 전체 처리흐름 및 A/B 역할구분
+  - 전체 처리흐름과 기술적 역할구분
 
 - `report-spec.md`
   - 최종 관리자 보고서 기준
+
+- `ai-spec.md`
+  - AI 분석 범위와 금지사항
+
+- `report-builder-spec.md`
+  - Core Result와 AI Result 조합기준
+
+- `web-spec.md`
+  - 관리자 Web 화면 기준
 
 세부값은 위 문서를 기준으로 한다.
 
@@ -52,9 +72,64 @@
 
 ---
 
-# 3. Developer A Scope
+# 3. D-Day Development Mode
 
-Developer A는 다음 Core Analysis를 담당한다.
+현재 PoC는 1인이 하나의 Branch에서 개발한다.
+
+실제 D-Day 작업 Branch:
+
+```text
+feature/solo-poc
+```
+
+`main`에서 직접 개발하지 않는다.
+
+기존 Branch:
+
+```text
+feature/core-analysis
+feature/web-ai-report
+```
+
+는 기존 2인 개발계획의 참고용이며 실제 D-Day에서는 사용하지 않는다.
+
+개발 우선순위:
+
+```text
+Core Analysis
+↓
+2층 Golden Sample
+↓
+1층 / 3층 Validation
+↓
+Report / Web
+↓
+Mock AI
+↓
+Azure OpenAI
+↓
+전체 Test / Demo
+```
+
+시간이 부족한 경우 다음 우선순위를 유지한다.
+
+```text
+Core 안정성
+>
+Report / Web
+>
+Mock AI
+>
+Actual Azure AI
+>
+부가기능
+```
+
+---
+
+# 4. Core Analysis Scope
+
+Core Analysis는 다음 기능을 담당한다.
 
 ```text
 여러 장비 원본 로그
@@ -72,15 +147,14 @@ Developer A는 다음 Core Analysis를 담당한다.
 → 현재 상태 판단
 → 반복 여부
 → Fact 및 Evidence
-→ A/B JSON
+→ Core Result
 ```
 
-A는 다음 기능을 구현하지 않는다.
+Core는 다음 기능을 수행하지 않는다.
 
-- Azure OpenAI
-- AI 장애원인 추정
-- Web UI
-- 최종 자연어 보고서
+- AI 장애원인 확정
+- Web UI 판단로직
+- 자연어 원인 확정
 - Database
 - 실시간 NMS 연동
 - 자동복구
@@ -88,34 +162,36 @@ A는 다음 기능을 구현하지 않는다.
 
 ---
 
-# 4. Developer B Scope
+# 5. AI / Report / Web Scope
 
-Developer B는 A의 JSON을 입력으로 사용한다.
-
-B의 역할:
+Core Result 이후에는 다음 흐름으로 처리한다.
 
 ```text
-A Core JSON
-→ Azure OpenAI
+Core Result
+→ AI Analysis
 → 원인 후보
 → 추정 근거
 → 부족하거나 반대되는 근거
 → 추가 확인사항
+→ Report Builder
 → Web UI
 → 관리자 보고서
 ```
 
-B는 다음 값을 임의로 변경하지 않는다.
+AI는 다음 값을 임의로 변경하지 않는다.
 
 - 장애 위치
 - 영향 가능 업무
 - 업무 중요도
 - 복구 우선순위
-- A가 생성한 Fact
+- 장애시간
+- 현재 상태
+- Core가 생성한 Fact
+- Recurrence
 
 ---
 
-# 5. Rule and AI Separation
+# 6. Rule and AI Separation
 
 다음 항목은 Rule 및 기준정보 기반으로 처리한다.
 
@@ -139,9 +215,28 @@ B는 다음 값을 임의로 변경하지 않는다.
 
 AI가 Rule 결과를 변경하지 않는다.
 
+기술적 역할 경계:
+
+```text
+Core Analysis
+= Fact / Rule
+
+AI Analysis
+= Inference
+
+Report Builder
+= Composition
+
+Web
+= Presentation
+
+Human
+= Final Decision
+```
+
 ---
 
-# 6. Impact Interpretation
+# 7. Impact Interpretation
 
 `affected_services`는 실제 서비스 장애가 확인되었다는 뜻이 아니다.
 
@@ -160,7 +255,7 @@ verification_status = UNVERIFIED
 
 ---
 
-# 7. Multi-device Analysis
+# 8. Multi-device Analysis
 
 가능한 경우 단일 장비 이벤트만으로 Incident를 판단하지 않는다.
 
@@ -190,7 +285,7 @@ verification_status = UNVERIFIED
 
 ---
 
-# 8. Incident Time
+# 9. Incident Time
 
 시간 정의는 `data-spec.md`와 `interface-spec.md`를 따른다.
 
@@ -223,7 +318,7 @@ end_time = recovery_time
 
 ---
 
-# 9. Fact and Evidence
+# 10. Fact and Evidence
 
 Fact는 원본 로그에서 직접 확인 가능한 내용만 사용한다.
 
@@ -249,7 +344,7 @@ Loop가 최종 장애원인이다.
 
 ---
 
-# 10. Source Line Rule
+# 11. Source Line Rule
 
 `source_line`은 원본 로그 파일의 실제 행 번호이다.
 
@@ -259,9 +354,9 @@ Sample 로그 파일은 테스트 정합성을 위해 빈 줄 없이 유지한�
 
 ---
 
-# 11. A/B Interface
+# 12. Core Result Interface
 
-A의 최상위 JSON 구조는 `interface-spec.md`를 따른다.
+Core Result의 최상위 구조는 `interface-spec.md`를 따른다.
 
 기본 구조:
 
@@ -278,21 +373,25 @@ A의 최상위 JSON 구조는 `interface-spec.md`를 따른다.
 
 필드명과 의미를 임의로 변경하지 않는다.
 
+`interface-spec.md`의 JSON은 데이터 구조 계약을 의미한다.
+
+실제 실행 시에는 해당 구조를 만족하는 Python `dict` 또는 Pydantic Object를 사용할 수 있으며 중간 JSON 파일 저장은 필수가 아니다.
+
 Interface 변경이 필요한 경우:
 
 1. `interface-spec.md` 수정
 2. `data-spec.md` 정합성 확인
 3. Expected JSON 수정
-4. A/B 구현 수정
+4. 구현 수정
 5. 테스트 재실행
 
 순서를 따른다.
 
 ---
 
-# 12. Sample Strategy
+# 13. Sample Strategy
 
-A는 다음 3개 Sample을 지원해야 한다.
+다음 3개 Sample을 지원한다.
 
 ## 1층 Validation
 
@@ -309,8 +408,6 @@ data/sample_logs/link_1f.log
 → P2
 → RECOVERED
 ```
-
----
 
 ## 2층 Golden Sample
 
@@ -330,8 +427,6 @@ data/sample_logs/loop_2f.log
 
 복합 이벤트와 다중장비 상관분석까지 검증한다.
 
----
-
 ## 3층 Validation
 
 ```text
@@ -350,7 +445,7 @@ data/sample_logs/link_3f.log
 
 ---
 
-# 13. Hardcoding Prohibition
+# 14. Hardcoding Prohibition
 
 다음 형태의 구현을 금지한다.
 
@@ -374,7 +469,7 @@ if floor == 2:
 
 ---
 
-# 14. Coding Principles
+# 15. Coding Principles
 
 다음 원칙을 따른다.
 
@@ -388,14 +483,16 @@ if floor == 2:
 - API Key를 코드에 넣지 않는다.
 - 무관한 파일을 수정하지 않는다.
 - 요청하지 않은 대규모 리팩터링을 하지 않는다.
+- Golden Sample에만 맞춘 예외처리를 만들지 않는다.
+- Specification 또는 Expected를 코드에 맞추기 위해 임의로 변경하지 않는다.
 
 ---
 
-# 15. Testing
+# 16. Testing
 
 pytest를 사용한다.
 
-최소 검증:
+최소 Core 검증:
 
 ```text
 □ 정상 로그 Parsing
@@ -433,7 +530,7 @@ pytest를 사용한다.
 
 □ analysis_context
 
-□ 최종 A/B JSON
+□ 최종 Core Result
 ```
 
 Expected JSON:
@@ -452,22 +549,26 @@ pytest -q
 
 테스트 실패 상태를 완료로 간주하지 않는다.
 
+AI / Report / Web 단계에서는 최소 다음을 추가 확인한다.
+
+```text
+□ Report / Web 정상 표시
+□ Mock AI 결과 표시
+□ AI가 Core 값을 변경하지 않음
+□ AI Failure 시 Core Report 유지
+□ Mock End-to-End 동작
+```
+
 ---
 
-# 16. Git Rules
+# 17. Git Rules
 
 `main`에서 직접 개발하지 않는다.
 
-Developer A:
+D-Day 작업 Branch:
 
 ```text
-feature/core-analysis
-```
-
-Developer B:
-
-```text
-feature/web-ai-report
+feature/solo-poc
 ```
 
 작은 단위로 Commit한다.
@@ -475,26 +576,24 @@ feature/web-ai-report
 예:
 
 ```text
-feat: add multi-device log parser
-test: add parser tests
-
-feat: add incident correlation
-test: add incident tests
-
-feat: add business impact mapping
-test: validate floor mappings
-
-feat: add core result builder
+feat: add network incident core
 test: validate golden samples
+
+feat: add incident report web
+test: add web tests
+
+feat: add mock ai analysis
+
+feat: add azure openai integration
 ```
 
-A/B 공유 Interface를 임의로 변경하지 않는다.
+공유 Interface와 Specification을 임의로 변경하지 않는다.
 
 ---
 
-# 17. One-Day PoC Constraint
+# 18. One-Day PoC Constraint
 
-다음은 구현하지 않는다.
+다음은 우선 구현하지 않는다.
 
 - Database
 - 실시간 Streaming
@@ -507,12 +606,20 @@ A/B 공유 Interface를 임의로 변경하지 않는다.
 - 장애 예측
 - Production 배포
 - 과도한 UI Framework
+- Dashboard 고도화
+- 그래프
+- 파일 Upload
+- RAG
+- Vector DB
+- Agent
+- 복잡한 Retry
+- 대규모 Refactoring
 
-현재 설계된 3개 Sample이 안정적으로 동작하는 것을 우선한다.
+현재 설계된 3개 Sample과 End-to-End Demo가 안정적으로 동작하는 것을 우선한다.
 
 ---
 
-# 18. Copilot Working Procedure
+# 19. Copilot Working Procedure
 
 작업 요청을 받으면 다음 순서를 따른다.
 
@@ -530,11 +637,47 @@ A/B 공유 Interface를 임의로 변경하지 않는다.
 
 충돌내용을 먼저 보고한다.
 
+한 번에 전체 시스템을 구현하지 않는다.
+
+```text
+Feature
+↓
+Test
+↓
+PASS
+↓
+다음 기능
+```
+
+방식으로 진행한다.
+
 ---
 
-# 19. Definition of Done
+# 20. D-Day Stop Rules
 
-Developer A는 다음 조건을 만족하면 완료한다.
+시간이 부족한 경우 다음 기준을 따른다.
+
+## Core가 지연될 경우
+
+새 기능 개발을 중단하고 2층 Golden Sample을 우선 완료한다.
+
+## Web이 지연될 경우
+
+Azure OpenAI 개발을 보류하고 관리자 Report/Web 완성을 우선한다.
+
+## Azure 연결이 지연될 경우
+
+Mock AI를 사용하여 End-to-End Demo를 유지한다.
+
+Azure 연결 실패로 전체 PoC를 실패시키지 않는다.
+
+---
+
+# 21. Definition of Done
+
+1인 D-Day PoC는 다음 우선순위로 완료를 판단한다.
+
+## 필수 완료
 
 ```text
 □ 여러 장비 로그 Parsing
@@ -561,6 +704,25 @@ Developer A는 다음 조건을 만족하면 완료한다.
 □ interface-spec 준수
 □ Expected JSON 일치
 □ pytest PASS
+
+□ 관리자 Report / Web 동작
 ```
 
-A가 완료되면 B 영역으로 확장하지 않고 작업을 종료한다.
+## 목표 완료
+
+```text
+□ Mock AI 동작
+□ AI 분석 결과 Report 표시
+□ Mock End-to-End PASS
+```
+
+## 시간 허용 시
+
+```text
+□ Azure OpenAI 실제 연결
+□ Azure Smoke Test PASS
+```
+
+D-Day는 기존 Developer A/B 각각의 모든 기능을 완료하는 것을 목표로 하지 않는다.
+
+핵심 시나리오가 End-to-End로 동작하면 PoC 완료로 판단한다.
