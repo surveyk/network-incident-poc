@@ -52,14 +52,73 @@ def test_affected_services_are_possible_impact_not_confirmed_failure(core, ai_ok
         assert f"{name} 서비스 중단" not in text
 
 
+def test_duration_and_status_class_2f(core, ai_ok):
+    s = build_report(core, ai_ok)["summary"]
+
+    assert s["duration"] == "49초"
+    assert s["status_class"] == "recovered"
+
+
+@pytest.mark.parametrize(
+    "start, recovery, expected",
+    [
+        ("2026-09-30T10:21:24", "2026-09-30T10:22:13", "49초"),
+        ("2026-09-30T10:21:24", "2026-09-30T10:23:13", "1분 49초"),
+        ("2026-09-30T10:00:00", "2026-09-30T11:02:03", "1시간 2분 3초"),
+        ("2026-09-30T10:00:00", "2026-09-30T10:00:00", "0초"),
+        ("2026-09-30T10:00:00", None, None),
+        (None, "2026-09-30T10:00:00", None),
+    ],
+)
+def test_duration_format(core, ai_ok, start, recovery, expected):
+    core["incident"]["start_time"] = start
+    core["incident"]["recovery_time"] = recovery
+
+    assert build_report(core, ai_ok)["summary"]["duration"] == expected
+
+
+@pytest.mark.parametrize(
+    "status, css, label",
+    [
+        ("RECOVERED", "recovered", "복구 완료"),
+        ("ACTIVE", "active", "장애 지속"),
+        ("RECOVERING", "warning", "복구 중"),
+        ("UNKNOWN", "warning", "확인 필요"),
+        ("SOMETHING_ELSE", "warning", "확인 필요"),
+    ],
+)
+def test_status_class_mapping(core, ai_ok, status, css, label):
+    core["incident"]["status"] = status
+
+    s = build_report(core, ai_ok)["summary"]
+
+    assert (s["status_class"], s["status"]) == (css, label)
+
+
 def test_timeline(core, ai_ok):
     timeline = build_report(core, ai_ok)["timeline"]
 
     assert [e["time"] for e in timeline] == [
-        "10:21:02", "10:21:22", "10:21:24", "10:22:05", "10:22:13",
+        "10:21:02", "10:21:22", "10:21:24", "10:22:05", "10:22:13", "10:22:19",
     ]
-    assert [e["stage"] for e in timeline] == ["이상징후", "이상징후", "장애", "조치", "복구"]
+    assert [e["stage"] for e in timeline] == [
+        "이상징후", "이상징후", "장애발생", "조치", "복구", "정상화",
+    ]
+    assert [e["device"] for e in timeline] == [
+        "2층 층간스위치", "백본스위치", "백본스위치", "2층 층간스위치", "백본스위치", "2층 층간스위치",
+    ]
     assert timeline[0]["text"] == "MAC 주소 반복 이동 감지"
+
+
+def test_timeline_stage_labels_include_normalized(core, ai_ok):
+    core["timeline"].append({
+        "timestamp": "2026-09-30T10:22:19", "stage": "NORMALIZED",
+        "device": "2층 층간스위치", "event_type": "CPU_HIGH", "summary": "CPU 사용률 정상화",
+    })
+
+    last = build_report(core, ai_ok)["timeline"][-1]
+
+    assert (last["time"], last["stage"], last["device"]) == ("10:22:19", "정상화", "2층 층간스위치")
 
 
 def test_actions_from_action_stage_without_causal_claim(core, ai_ok):
@@ -93,7 +152,7 @@ def test_ai_unavailable_keeps_core_report(core, ai_down):
     report = build_report(core, ai_down)
 
     assert report["summary"] == build_report(core, load("mock/ai_2f.json"))["summary"]
-    assert len(report["timeline"]) == 5
+    assert len(report["timeline"]) == 6
     assert report["actions"]
     a = report["analysis"]
     assert a["available"] is False

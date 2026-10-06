@@ -72,6 +72,13 @@
       "device": "백본스위치",
       "event_type": "LINK_UP",
       "summary": "2층 네트워크 연결 복구"
+    },
+    {
+      "timestamp": "2026-09-30T10:22:19",
+      "stage": "NORMALIZED",
+      "device": "2층 층간스위치",
+      "event_type": "CPU_HIGH",
+      "summary": "Broadcast 및 CPU 상태 정상 확인"
     }
   ],
 

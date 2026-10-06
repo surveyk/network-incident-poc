@@ -8,6 +8,7 @@ STATUS_LABELS = {
     "RECOVERED": "복구 완료",
     "UNKNOWN": "확인 필요",
 }
+STATUS_CLASSES = {"RECOVERED": "recovered", "ACTIVE": "active"}  # 그 외는 warning
 RECURRENCE_LABELS = {
     "REPEATED": "반복 장애",
     "NOT_REPEATED": "반복 없음",
@@ -15,7 +16,7 @@ RECURRENCE_LABELS = {
 }
 STAGE_LABELS = {
     "PRECURSOR": "이상징후",
-    "INCIDENT": "장애",
+    "INCIDENT": "장애발생",
     "ACTION": "조치",
     "RECOVERY": "복구",
     "NORMALIZED": "정상화",
@@ -45,6 +46,20 @@ def _incident_time(start, recovery):
     return f"{text} ~ {recovery_dt:%H:%M:%S}" if recovery_dt else f"{text} ~"
 
 
+def _duration(start, recovery):
+    start_dt, recovery_dt = _dt(start), _dt(recovery)
+    if not start_dt or not recovery_dt or recovery_dt < start_dt:
+        return None
+    hours, rest = divmod(int((recovery_dt - start_dt).total_seconds()), 3600)
+    minutes, seconds = divmod(rest, 60)
+    parts = [f"{hours}시간"] if hours else []
+    if minutes:
+        parts.append(f"{minutes}분")
+    if seconds or not parts:
+        parts.append(f"{seconds}초")
+    return " ".join(parts)
+
+
 def _require(core, section, key):
     value = (core.get(section) or {}).get(key)
     if value in (None, "", []):
@@ -55,16 +70,19 @@ def _require(core, section, key):
 def _build_summary(core):
     incident, impact = core["incident"], core["impact"]
     services = _require(core, "impact", "affected_services")
+    status = _require(core, "incident", "status")
 
     summary = {
         "incident_time": _incident_time(incident.get("start_time"), incident.get("recovery_time")),
+        "duration": _duration(incident.get("start_time"), incident.get("recovery_time")),
         "detected_time": _hms(incident.get("detected_time")) or UNKNOWN_TEXT,
         "location": _require(core, "incident", "location"),
         "affected_services_label": "영향 가능 업무",
         "affected_services": [s["name"] for s in services],
         "criticality": CRITICALITY_LABELS.get(impact.get("overall_criticality"), UNKNOWN_TEXT),
         "recovery_priority": PRIORITY_LABELS.get(impact.get("recovery_priority"), UNKNOWN_TEXT),
-        "status": STATUS_LABELS.get(_require(core, "incident", "status"), STATUS_LABELS["UNKNOWN"]),
+        "status": STATUS_LABELS.get(status, STATUS_LABELS["UNKNOWN"]),
+        "status_class": STATUS_CLASSES.get(status, "warning"),
         "recurrence": RECURRENCE_LABELS.get(
             (core.get("recurrence") or {}).get("status"), RECURRENCE_LABELS["UNKNOWN"]
         ),
@@ -79,10 +97,11 @@ def _build_timeline(core):
         {
             "time": _hms(e.get("timestamp")),
             "stage": STAGE_LABELS.get(e.get("stage"), e.get("stage")),
+            "stage_code": e.get("stage"),
+            "device": e.get("device"),
             "text": e.get("summary"),
         }
         for e in core.get("timeline", [])
-        if e.get("stage") != "NORMALIZED"
     ]
 
 

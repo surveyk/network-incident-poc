@@ -9,19 +9,69 @@
   header { border-bottom: 2px solid #222; padding-bottom: 8px; margin-bottom: 24px; }
   header .sub { font-size: 13px; color: #555; }
   h1 { font-size: 24px; margin: 4px 0; }
-  h2 { font-size: 17px; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #999; }
+  h2 { font-size: 17px; margin: 30px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #999; }
   h3 { font-size: 14px; margin: 14px 0 4px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { border: 1px solid #bbb; padding: 6px 10px; text-align: left; vertical-align: top; }
-  th { background: #f3f3f3; width: 160px; white-space: nowrap; }
-  table.list th { width: auto; }
-  td.time { width: 90px; white-space: nowrap; }
-  td.stage { width: 80px; white-space: nowrap; }
+  th { background: #f3f3f3; white-space: nowrap; }
+  .summary-primary { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 12px; }
+  .summary-secondary { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .summary-card { border: 1px solid #d9dee7; border-radius: 8px; padding: 16px; background: #fff; }
+  .summary-card.compact { padding: 10px 16px; background: #fafafa; }
+  .summary-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  .summary-value { font-size: 18px; font-weight: 700; }
+  .summary-sub { margin-top: 6px; font-size: 13px; color: #374151; }
+  .summary-duration { margin-top: 8px; font-size: 15px; font-weight: 700; color: #111827; }
+  .summary-note { margin-top: 16px; font-size: 12px; font-weight: normal; color: #6b7280; }
+  .status-recovered { border-left: 6px solid #16a34a; background: #f0fdf4; }
+  .status-active { border-left: 6px solid #dc2626; background: #fef2f2; }
+  .status-warning { border-left: 6px solid #d97706; background: #fffbeb; }
+  .status-badge { display: inline-block; padding: 2px 14px; border-radius: 12px; font-size: 18px; font-weight: 700; color: #fff; }
+  .status-recovered .status-badge { background: #16a34a; }
+  .status-active .status-badge { background: #dc2626; }
+  .status-warning .status-badge { background: #d97706; }
+  .badge { display: inline-block; padding: 1px 10px; border-radius: 10px; font-size: 14px; font-weight: bold; border: 2px solid #222; background: #fff; color: #222; }
+  .badge-criticality { background: #b00020; border-color: #b00020; color: #fff; }
+  .badge-priority { background: #222; color: #fff; }
+  @media (max-width: 800px) { .summary-primary, .summary-secondary { grid-template-columns: 1fr; } }
+  ol.timeline { list-style: none; margin: 8px 0 0 0; padding: 0; }
+  ol.timeline li { position: relative; padding: 0 0 18px 140px; min-height: 40px; }
+  ol.timeline li:last-child { padding-bottom: 0; }
+  ol.timeline li::after { content: ""; position: absolute; left: 115px; top: 20px; bottom: -4px; width: 2px; background: #bbb; }
+  ol.timeline li:last-child::after { display: none; }
+  ol.timeline li::before { content: ""; position: absolute; left: 110px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #777; z-index: 1; }
+  li.stage-precursor::before { border-color: #c77700; }
+  li.stage-incident::before { border-color: #b00020; }
+  li.stage-action::before { border-color: #1a56a0; }
+  li.stage-recovery::before { border-color: #1b7f3b; }
+  li.stage-normalized::before { border-color: #777; }
+  .ev-head { font-size: 14px; }
+  .ev-time { position: absolute; left: 0; width: 98px; text-align: right; top: 0; font-family: Consolas, monospace; font-weight: bold; font-size: 14px; }
+  .ev-stage { display: inline-block; border: 1px solid #777; padding: 0 8px; font-size: 12px; font-weight: bold; color: #555; background: #fff; }
+  .stage-precursor .ev-stage { border-color: #c77700; color: #8a5200; background: #fff4e0; }
+  .stage-incident .ev-stage { border-color: #b00020; color: #fff; background: #b00020; }
+  .stage-action .ev-stage { border-color: #1a56a0; color: #1a56a0; background: #e6effa; }
+  .stage-recovery .ev-stage { border-color: #1b7f3b; color: #fff; background: #1b7f3b; }
+  .stage-normalized .ev-stage { border-color: #777; color: #444; background: #eee; }
+  .ev-text { font-size: 15px; margin-top: 2px; }
+  .ev-device { font-size: 11px; font-weight: normal; color: #8a8f98; margin-top: 4px; }
   ul { margin: 4px 0; padding-left: 22px; }
   .strong { font-weight: bold; }
   .note { font-size: 12px; color: #555; }
   .empty { color: #666; }
-  details { margin-top: 28px; border: 1px solid #bbb; padding: 8px 12px; }
+  .action-box { border: 2px solid #1a56a0; background: #f2f7fd; padding: 10px 16px; }
+  .action-box ul { margin: 0; }
+  .ai-box { border: 1px dashed #d3cce8; background: #fdfcff; padding: 10px 16px 14px; }
+  .ai-box h3 { margin: 24px 0 6px; }
+  .ai-box .tag + h3 { margin-top: 10px; }
+  .ai-box ul { margin-bottom: 10px; }
+  .fact-box { border: 1px solid #888; background: #f6f6f6; padding: 10px 16px 14px; }
+  .fact-box table { background: #fff; }
+  .tag { display: inline-block; font-size: 12px; font-weight: bold; padding: 0 8px; margin-bottom: 6px; color: #fff; }
+  .tag-ai { background: #6a4fb3; }
+  .tag-fact { background: #555; }
+  details { margin-top: 30px; border: 1px solid #bbb; padding: 8px 12px; }
+  details > .fact-box, details > .ai-box { margin-top: 10px; }
   summary { cursor: pointer; font-weight: bold; }
   .error { border: 1px solid #a00; color: #a00; padding: 12px; }
 </style>
@@ -41,42 +91,67 @@
   {% set a = report.analysis %}
 
   <h2>1. 장애 요약</h2>
-  <table>
-    <tr><th>발생일시</th><td>{{ s.incident_time }}</td></tr>
-    <tr><th>최초 이상징후</th><td>{{ s.detected_time }}</td></tr>
-    <tr><th>장애구간</th><td class="strong">{{ s.location }}</td></tr>
-    <tr>
-      <th>{{ s.affected_services_label }}</th>
-      <td>
-        <span class="strong">{{ s.affected_services | join(", ") }}</span>
-        {% if s.service_note %}<div class="note">{{ s.service_note }}</div>{% endif %}
-      </td>
-    </tr>
-    <tr><th>업무 중요도</th><td class="strong">{{ s.criticality }}</td></tr>
-    <tr><th>복구 우선순위</th><td class="strong">{{ s.recovery_priority }}</td></tr>
-    <tr><th>현재상태</th><td class="strong">{{ s.status }}</td></tr>
-    <tr><th>반복 장애 여부</th><td>{{ s.recurrence }}</td></tr>
-  </table>
+  <div class="summary-primary">
+    <div class="summary-card">
+      <div class="summary-label">장애장소</div>
+      <div class="summary-value">{{ s.location }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">장애시간</div>
+      <div class="summary-value">{{ s.incident_time }}</div>
+      {% if s.duration %}<div class="summary-duration">총 장애시간 <strong>{{ s.duration }}</strong></div>{% endif %}
+      <div class="summary-sub">최초 이상징후 {{ s.detected_time }}</div>
+    </div>
+    <div class="summary-card status-{{ s.status_class }}">
+      <div class="summary-label">현재상태</div>
+      <div><span class="status-badge">{{ s.status }}</span></div>
+      <div class="summary-note">반복 장애 여부 {{ s.recurrence }}</div>
+    </div>
+  </div>
+  <div class="summary-secondary">
+    <div class="summary-card compact">
+      <div class="summary-label">{{ s.affected_services_label }}</div>
+      <div class="strong">{{ s.affected_services | join(" · ") }}</div>
+      {% if s.service_note %}<div class="note">{{ s.service_note }}</div>{% endif %}
+    </div>
+    <div class="summary-card compact">
+      <div class="summary-label">업무 중요도</div>
+      <span class="badge badge-criticality">{{ s.criticality }}</span>
+    </div>
+    <div class="summary-card compact">
+      <div class="summary-label">복구 우선순위</div>
+      <span class="badge badge-priority">{{ s.recovery_priority }}</span>
+    </div>
+  </div>
 
   <h2>2. 장애경과</h2>
-  <table class="list">
+  <ol class="timeline">
     {% for e in report.timeline %}
-    <tr><td class="time">{{ e.time }}</td><td class="stage">{{ e.stage }}</td><td>{{ e.text }}</td></tr>
+    <li class="stage-{{ e.stage_code | lower }}">
+      <span class="ev-time">{{ e.time }}</span>
+      <div class="ev-head"><span class="ev-stage">{{ e.stage }}</span></div>
+      <div class="ev-text">{{ e.text }}</div>
+      <div class="ev-device">{{ e.device }}</div>
+    </li>
     {% endfor %}
-  </table>
+  </ol>
 
   <h2>3. 조치내용</h2>
   {% if report.actions %}
-  <ul>
-    {% for item in report.actions %}<li>{{ item }}</li>{% endfor %}
-  </ul>
+  <div class="action-box">
+    <ul>
+      {% for item in report.actions %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </div>
   {% else %}
   <p class="empty">확인된 조치내용이 없습니다.</p>
   {% endif %}
 
   <h2>4. 추정원인 및 추가확인</h2>
+  <div class="ai-box">
+  <span class="tag tag-ai">AI 추정</span>
   {% if a.probable_cause %}
-    <h3>추정원인 (AI 추정)</h3>
+    <h3>추정원인</h3>
     <p>현재 로그 흐름에서는 <span class="strong">{{ a.probable_cause }}</span>을 우선 검토할 수 있습니다. 최종 원인은 담당자가 판단합니다.</p>
     {% if a.ai_summary %}<p class="note">{{ a.ai_summary }}</p>{% endif %}
     <h3>주요 근거</h3>
@@ -90,11 +165,13 @@
     <h3>추가확인</h3>
     <ul>{% for item in a.additional_checks %}<li>{{ item }}</li>{% endfor %}</ul>
   {% endif %}
+  </div>
 
   <details>
     <summary>5. 기술 상세정보</summary>
 
-    <h3>Fact (원본 로그 기반)</h3>
+    <div class="fact-box">
+    <span class="tag tag-fact">로그 기반 Fact</span>
     <table class="list">
       <tr><th>시각</th><th>장비</th><th>유형</th><th>내용</th><th>원본 로그</th></tr>
       {% for f in report.details.facts %}
@@ -109,8 +186,10 @@
       <li>분석 장비 수: {{ c.device_count }}대</li>
       <li>관련 이벤트: {{ c.related_event_count }}건</li>
     </ul>
+    </div>
 
-    <h3>AI 원인 후보 (추정, Fact 아님)</h3>
+    <div class="ai-box">
+    <span class="tag tag-ai">AI 원인 후보 (추정, Fact 아님)</span>
     {% for h in report.details.hypotheses %}
       <p class="strong">{{ h.cause }}</p>
       <ul>
@@ -120,6 +199,7 @@
     {% else %}
       <p class="empty">AI 원인 후보가 없습니다.</p>
     {% endfor %}
+    </div>
   </details>
 {% endif %}
 </div>
