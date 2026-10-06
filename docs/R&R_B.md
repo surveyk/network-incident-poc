@@ -1,6 +1,53 @@
 
 # Network Incident PoC
 # Developer B — 역할 및 처리흐름
+> ## 현재 운영기준 안내
+>
+> 본 문서는 최초 **2인 병렬개발 환경에서 Developer B의 역할과 책임범위(R&R)**를 정의하기 위해 작성된 참고자료이다.
+>
+> 현재 D-Day 개발방식은 **1인 개발**로 변경되었으며, 실제 개발 실행순서와 우선순위는 다음 문서를 기준으로 한다.
+>
+> ```text
+> JOB_261007_SOLO.md
+> ```
+>
+> 따라서 본 문서에서 사용하는 `Developer A`, `Developer B`, A/B 인수인계 등의 표현은 현재 개발 인원 구성을 의미하지 않는다.
+>
+> 다만 다음과 같은 **기술적 역할 경계는 계속 유효하다.**
+>
+> ```text
+> Core Analysis
+> = Fact / Rule
+>
+> AI Analysis
+> = Inference
+>
+> Report Builder
+> = Composition
+>
+> Web
+> = Presentation
+>
+> Human
+> = Final Decision
+> ```
+>
+> 특히 AI / Report / Web 영역은 Core가 생성한 다음 정보를 임의로 변경하지 않는다.
+>
+> ```text
+> 장애 위치
+> 영향 가능 업무
+> 업무 중요도
+> 복구 우선순위
+> 장애시간
+> 현재 상태
+> Facts
+> Recurrence
+> ```
+>
+> 본 문서는 AI / Report / Web 영역의 상세 설계 참고자료로 유지하며, 실제 D-Day 개발순서 및 완료기준은 `JOB_261007_SOLO.md`와 `.github/copilot-instructions.md`를 우선한다.
+>
+> ---
 
 ## 1. 목적
 
