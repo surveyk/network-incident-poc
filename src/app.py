@@ -27,7 +27,9 @@ def load_core():
 @app.get("/")
 def index(request: Request):
     try:
-        report = build_report(load_core(), get_ai_result())
+        core_result = load_core()
+        ai_result = get_ai_result(core_result)
+        report = build_report(core_result, ai_result)
     except (OSError, ValueError, KeyError, TypeError):
         # Core 입력 오류는 AI 실패와 구분해 표시한다.
         return templates.TemplateResponse(

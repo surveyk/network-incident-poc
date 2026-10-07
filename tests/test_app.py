@@ -1,9 +1,10 @@
 import json
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from src import app as app_module
+from src import ai, app as app_module
 from src.core import analyze
 
 client = TestClient(app_module.app)
@@ -13,6 +14,13 @@ client = TestClient(app_module.app)
 def actual_core_input(monkeypatch):
     monkeypatch.setenv("AI_MODE", "mock")
     monkeypatch.setenv("INCIDENT_LOG_PATH", str(app_module.BASE_DIR / "data" / "sample_logs" / "loop_2f.log"))
+    for variable in ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY", "AZURE_OPENAI_DEPLOYMENT"):
+        monkeypatch.delenv(variable, raising=False)
+
+    def unexpected_client(*args, **kwargs):
+        pytest.fail("Real Azure clients must not be created during tests")
+
+    monkeypatch.setattr(ai, "OpenAI", unexpected_client)
 
 
 def test_index_shows_core_report():
@@ -71,7 +79,7 @@ def test_index_does_not_state_confirmed_service_failure():
 
 
 def test_ai_unavailable_keeps_core_report(monkeypatch):
-    monkeypatch.setattr(app_module, "get_ai_result", lambda: json.loads(
+    monkeypatch.setattr(app_module, "get_ai_result", lambda core_result: json.loads(
         (app_module.BASE_DIR / "data" / "mock" / "ai_unavailable.json").read_text(encoding="utf-8")
     ))
 
@@ -180,7 +188,7 @@ def assert_core_report_without_ai(response):
 
 
 def test_ai_unavailable_via_ai_mode_renders_full_core_report(monkeypatch):
-    monkeypatch.setenv("AI_MODE", "azure")  # Azure 미구현 -> UNAVAILABLE Fallback
+    monkeypatch.setenv("AI_MODE", "azure")
 
     assert_core_report_without_ai(client.get("/"))
 
@@ -189,7 +197,7 @@ def test_ai_unavailable_mock_file_renders_full_core_report(monkeypatch):
     from src import ai
 
     real = ai.get_ai_result
-    monkeypatch.setattr(app_module, "get_ai_result", lambda: real("unavailable"))
+    monkeypatch.setattr(app_module, "get_ai_result", lambda core_result: real(core_result, scenario="unavailable"))
 
     assert_core_report_without_ai(client.get("/"))
 
@@ -287,7 +295,7 @@ def test_invalid_input_returns_core_failure_without_calling_ai(monkeypatch, conf
     else:
         monkeypatch.setenv("INCIDENT_LOG_PATH", configured_path)
 
-    def unexpected_ai_call():
+    def unexpected_ai_call(core_result):
         pytest.fail("AI must not run after Core input failure")
 
     monkeypatch.setattr(app_module, "get_ai_result", unexpected_ai_call)
@@ -330,7 +338,7 @@ def test_actual_unanalyzable_input_returns_core_failure(monkeypatch, tmp_path, c
 def test_actual_core_sections_are_unchanged_by_ai_failure(monkeypatch, status):
     successful = client.get("/").context["report"]
     failed_ai = {"ai_status": status, "summary": None, "hypotheses": [], "additional_checks": []}
-    monkeypatch.setattr(app_module, "get_ai_result", lambda: failed_ai)
+    monkeypatch.setattr(app_module, "get_ai_result", lambda core_result: failed_ai)
 
     response = client.get("/")
 
@@ -342,3 +350,48 @@ def test_actual_core_sections_are_unchanged_by_ai_failure(monkeypatch, status):
         assert failed["details"][section] == successful["details"][section]
     assert failed["analysis"]["ai_status"] == status
     assert failed["details"]["hypotheses"] == []
+
+
+def test_index_passes_same_core_result_to_ai(monkeypatch):
+    core_result = app_module.load_core()
+    calls = []
+    real_ai = app_module.get_ai_result
+
+    def tracked_ai(passed_core):
+        calls.append(passed_core)
+        return real_ai(passed_core)
+
+    monkeypatch.setattr(app_module, "load_core", lambda: core_result)
+    monkeypatch.setattr(app_module, "get_ai_result", tracked_ai)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert len(calls) == 1
+    assert calls[0] is core_result
+    assert response.context["report"] == app_module.build_report(core_result, real_ai(core_result))
+
+
+def test_azure_sdk_failure_keeps_http_200_and_core_report(monkeypatch):
+    successful = client.get("/").context["report"]
+    monkeypatch.setenv("AI_MODE", "azure")
+    monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
+    monkeypatch.setenv("AZURE_OPENAI_API_KEY", "fake-test-key")
+    monkeypatch.setenv("AZURE_OPENAI_DEPLOYMENT", "incident-analysis-deployment")
+    fake_client = MagicMock()
+    fake_client.__enter__.return_value = fake_client
+    fake_client.chat.completions.create.side_effect = TimeoutError("fake SDK failure")
+    constructor = MagicMock(return_value=fake_client)
+    monkeypatch.setattr(ai, "OpenAI", constructor)
+
+    response = client.get("/")
+
+    assert_core_report_without_ai(response)
+    failed = response.context["report"]
+    assert failed["analysis"]["ai_status"] == "ERROR"
+    for section in ("summary", "timeline", "actions"):
+        assert failed[section] == successful[section]
+    for section in ("facts", "analysis_context"):
+        assert failed["details"][section] == successful["details"][section]
+    constructor.assert_called_once()
+    fake_client.chat.completions.create.assert_called_once()
