@@ -4,13 +4,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src import app as app_module
+from src.core import analyze
 
 client = TestClient(app_module.app)
 
 
 @pytest.fixture(autouse=True)
-def mock_mode(monkeypatch):
+def actual_core_input(monkeypatch):
     monkeypatch.setenv("AI_MODE", "mock")
+    monkeypatch.setenv("INCIDENT_LOG_PATH", str(app_module.BASE_DIR / "data" / "sample_logs" / "loop_2f.log"))
 
 
 def test_index_shows_core_report():
@@ -103,17 +105,20 @@ def test_timeline_renders_vertical_flow_in_order():
         "2층 네트워크 연결 중단",
         "장애 의심 포트 차단",
         "2층 네트워크 연결 복구",
-        "Broadcast 및 CPU 상태 정상 확인",
     )
     positions = [section.index(s) for s in steps]
     assert positions == sorted(positions)
-    for text in ("10:21:02", "10:21:24", "10:22:05", "10:22:13", "10:22:19",
-                 "이상징후", "장애발생", "조치", "복구", "정상화", "백본스위치", "2층 층간스위치"):
+    for text in ("10:21:02", "10:21:24", "10:22:05", "10:22:13",
+                 "이상징후", "장애발생", "조치", "복구", "백본스위치", "2층 층간스위치"):
         assert text in section
+    assert section.count('<li class="stage-') == 5
+    assert 'class="stage-normalized"' not in section
+    assert "10:22:19" not in section
+    assert "정상화" not in section
     assert "Line " not in section and "%SW_MATM" not in section
 
 
-def test_summary_primary_cards_for_recovered_mock():
+def test_summary_primary_cards_for_recovered_actual_core():
     html = client.get("/").text
     section = html.split("1. 장애 요약")[1].split("2. 장애경과")[0]
 
@@ -130,7 +135,7 @@ def test_summary_primary_cards_for_recovered_mock():
      ("UNKNOWN", "status-warning", "확인 필요")],
 )
 def test_status_card_css_class_and_text(monkeypatch, status, css, label):
-    core = json.loads(app_module.CORE_MOCK_PATH.read_text(encoding="utf-8"))
+    core = app_module.load_core()
     core["incident"]["status"] = status
     monkeypatch.setattr(app_module, "load_core", lambda: core)
 
@@ -152,8 +157,6 @@ CORE_TEXTS = (
     "복구 완료",
     "10:21:02",
     "10:22:13",
-    "10:22:19",
-    "정상화",
     "장애시간",
     "총 장애시간",
     "49초",
@@ -206,3 +209,136 @@ def test_ai_unavailable_shows_state_in_header_and_analysis_section(monkeypatch):
 
     assert html.count("AI 분석 사용 불가") == 1
     assert "AI 분석을 사용할 수 없어 추정원인 자동분석은 제공되지 않습니다." in html
+
+
+def test_actual_core_report_matches_expected_and_preserves_facts():
+    expected = json.loads(
+        (app_module.BASE_DIR / "data" / "expected" / "loop_2f_expected.json").read_text(encoding="utf-8")
+    )
+    response = client.get("/")
+
+    assert response.status_code == 200
+    report = response.context["report"]
+    assert report == app_module.build_report(expected, app_module.get_ai_result())
+    assert len(report["timeline"]) == 5
+    assert report["timeline"][-1]["stage_code"] == "RECOVERY"
+    assert [fact["source_line"] for fact in report["details"]["facts"]] == [
+        fact["source_line"] for fact in expected["facts"]
+    ]
+    for fact in expected["facts"]:
+        assert f"Line {fact['source_line']}" in response.text
+    assert report["details"]["analysis_context"]["related_event_count"] == 17
+
+
+@pytest.mark.parametrize("sample, location, service", [
+    ("link_1f", "1층 네트워크", "KICS(킥스)"),
+    ("link_3f", "3층 네트워크", "TCS"),
+])
+def test_link_samples_use_actual_core_with_ai_fallback(monkeypatch, sample, location, service):
+    monkeypatch.setenv("INCIDENT_LOG_PATH", f"data/sample_logs/{sample}.log")
+    monkeypatch.setenv("AI_MODE", "off")
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    for text in (location, service, "온나라", "폴넷", "높음", "P2 / 신속 복구", "복구 완료", "AI 분석 사용 불가"):
+        assert text in response.text
+    for text in AI_ONLY_TEXTS + ("2층 네트워크", "112시스템"):
+        assert text not in response.text
+    report = response.context["report"]
+    assert report["analysis"]["ai_status"] == "UNAVAILABLE"
+    assert len(report["timeline"]) == 4
+    assert all(event["stage_code"] != "NORMALIZED" for event in report["timeline"])
+    assert len(report["details"]["facts"]) == 4
+    assert report["details"]["analysis_context"]["related_event_count"] == 4
+
+
+def test_relative_input_path_is_resolved_from_repository(monkeypatch, tmp_path):
+    calls = []
+
+    def tracked_analyze(log_path, incident_sequence):
+        calls.append((log_path, incident_sequence))
+        return analyze(log_path, incident_sequence=incident_sequence)
+
+    monkeypatch.setenv("INCIDENT_LOG_PATH", "data/sample_logs/loop_2f.log")
+    monkeypatch.setattr(app_module, "analyze", tracked_analyze)
+    monkeypatch.chdir(tmp_path)
+
+    assert client.get("/").status_code == 200
+    assert calls == [(app_module.BASE_DIR / "data" / "sample_logs" / "loop_2f.log", 1)]
+
+
+def test_absolute_renamed_log_input_does_not_depend_on_sample_name(monkeypatch, tmp_path):
+    source = app_module.BASE_DIR / "data" / "sample_logs" / "loop_2f.log"
+    path = tmp_path / "arbitrary.log"
+    path.write_bytes(source.read_bytes())
+    monkeypatch.setenv("INCIDENT_LOG_PATH", str(path))
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.context["report"] == app_module.build_report(analyze(source), app_module.get_ai_result())
+
+
+@pytest.mark.parametrize("configured_path", [None, "", "   ", "data/sample_logs/missing.log", "data/sample_logs"])
+def test_invalid_input_returns_core_failure_without_calling_ai(monkeypatch, configured_path):
+    if configured_path is None:
+        monkeypatch.delenv("INCIDENT_LOG_PATH", raising=False)
+    else:
+        monkeypatch.setenv("INCIDENT_LOG_PATH", configured_path)
+
+    def unexpected_ai_call():
+        pytest.fail("AI must not run after Core input failure")
+
+    monkeypatch.setattr(app_module, "get_ai_result", unexpected_ai_call)
+    response = client.get("/")
+
+    assert response.status_code == 500
+    assert "분석 실패" in response.text
+    assert "AI 분석 사용 불가" not in response.text
+    assert "Traceback" not in response.text
+
+
+@pytest.mark.parametrize("error_type", [OSError, ValueError, KeyError, TypeError])
+def test_analyze_failure_uses_existing_core_error_policy(monkeypatch, error_type):
+    def failed_analyze(log_path, incident_sequence):
+        raise error_type("Core analysis failed")
+
+    monkeypatch.setattr(app_module, "analyze", failed_analyze)
+    response = client.get("/")
+
+    assert response.status_code == 500
+    assert "분석 실패" in response.text
+    assert "AI 분석 사용 불가" not in response.text
+    assert "Core analysis failed" not in response.text
+
+
+@pytest.mark.parametrize("content", ["", "2026-09-30 10:21:00 SW-ACCESS-02 %SYS-5-CONFIG_I: Configured from console\n"])
+def test_actual_unanalyzable_input_returns_core_failure(monkeypatch, tmp_path, content):
+    path = tmp_path / "input.log"
+    path.write_text(content, encoding="utf-8")
+    monkeypatch.setenv("INCIDENT_LOG_PATH", str(path))
+
+    response = client.get("/")
+
+    assert response.status_code == 500
+    assert "분석 실패" in response.text
+    assert "AI 분석 사용 불가" not in response.text
+
+
+@pytest.mark.parametrize("status", ["UNAVAILABLE", "ERROR"])
+def test_actual_core_sections_are_unchanged_by_ai_failure(monkeypatch, status):
+    successful = client.get("/").context["report"]
+    failed_ai = {"ai_status": status, "summary": None, "hypotheses": [], "additional_checks": []}
+    monkeypatch.setattr(app_module, "get_ai_result", lambda: failed_ai)
+
+    response = client.get("/")
+
+    assert_core_report_without_ai(response)
+    failed = response.context["report"]
+    for section in ("summary", "timeline", "actions"):
+        assert failed[section] == successful[section]
+    for section in ("facts", "analysis_context"):
+        assert failed["details"][section] == successful["details"][section]
+    assert failed["analysis"]["ai_status"] == status
+    assert failed["details"]["hypotheses"] == []

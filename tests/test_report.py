@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from src.core import analyze
 from src.report import build_report
 
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -279,3 +280,20 @@ def test_ai_unavailable_core_values_preserved(core, ai_down):
     assert s["criticality"] == "매우 높음"
     assert s["recovery_priority"] == "P1 / 최우선"
     assert s["status"] == "복구 완료"
+
+
+@pytest.mark.parametrize("end_time", [None, "2026-09-30T10:22:13", "2026-09-30T10:22:19", "2026-09-30T10:25:00"])
+def test_actual_core_end_time_does_not_invent_normalization(ai_down, end_time):
+    actual = analyze(DATA / "sample_logs" / "loop_2f.log")
+    actual["incident"]["end_time"] = end_time
+    before = copy.deepcopy(actual)
+
+    report = build_report(actual, ai_down)
+
+    assert actual == before
+    assert len(report["timeline"]) == 5
+    assert report["timeline"][-1]["stage_code"] == "RECOVERY"
+    assert all(event["stage_code"] != "NORMALIZED" for event in report["timeline"])
+    assert len(report["actions"]) == 2
+    assert not any("정상화" in action or "정상 확인" in action for action in report["actions"])
+    assert len(report["details"]["facts"]) == len(actual["facts"])

@@ -1,22 +1,27 @@
-import json
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 
 from src.ai import get_ai_result
+from src.core import analyze
 from src.report import build_report
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CORE_MOCK_PATH = BASE_DIR / "data" / "mock" / "core_2f.json"
 
 app = FastAPI(title="Network Incident PoC")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 def load_core():
-    # 실제 Core 연결 시 이 함수만 교체한다.
-    return json.loads(CORE_MOCK_PATH.read_text(encoding="utf-8"))
+    configured_path = os.getenv("INCIDENT_LOG_PATH", "").strip()
+    if not configured_path:
+        raise ValueError("INCIDENT_LOG_PATH is required")
+    log_path = Path(configured_path)
+    if not log_path.is_absolute():
+        log_path = BASE_DIR / log_path
+    return analyze(log_path, incident_sequence=1)
 
 
 @app.get("/")
