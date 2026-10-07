@@ -1,13 +1,9 @@
 2026-09-30 11:09:42 SW-ACCESS-03 %LINK-5-CHANGED: Interface Gi1/0/7 changed state to up
 2026-09-30 11:09:51 SW-ACCESS-04 %SYS-5-CONFIG_I: Configured from console by admin
-
 2026-09-30 11:10:02 SW-ACCESS-01 %LINK-3-UPDOWN: Interface Gi1/0/48 changed state to down
 2026-09-30 11:10:03 BACKBONE-SW %LINEPROTO-5-UPDOWN: Line protocol on 1F uplink changed state to down
-
 2026-09-30 11:10:15 SW-ACCESS-02 %SYS-5-CONFIG_I: Configured from console by admin
 2026-09-30 11:10:27 SW-ACCESS-03 %LINK-5-CHANGED: Interface Gi1/0/12 changed state to up
-
 2026-09-30 11:11:20 SW-ACCESS-01 %LINK-3-UPDOWN: Interface Gi1/0/48 changed state to up
 2026-09-30 11:11:21 BACKBONE-SW %LINEPROTO-5-UPDOWN: Line protocol on 1F uplink changed state to up
-
 2026-09-30 11:11:32 SW-ACCESS-05 %SYS-5-CONFIG_I: Configured from console by admin
